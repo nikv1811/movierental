@@ -1,0 +1,489 @@
+basePath: /
+definitions:
+  movieExternalApi.Movie:
+    properties:
+      genres:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      imdb_code:
+        type: string
+      title:
+        type: string
+      year:
+        type: integer
+    type: object
+  requests.Cart:
+    properties:
+      id:
+        type: string
+      movies:
+        items:
+          $ref: '#/definitions/requests.CartMovieItem'
+        type: array
+      user_id:
+        type: string
+    type: object
+  requests.CartMovieItem:
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+    type: object
+  requests.CreateUser:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a Movie Rental API server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Movie Rental API
+  version: "1.0"
+paths:
+  /cart:
+    delete:
+      description: Removes a specified movie item from the authenticated user's shopping
+        cart by its ID.
+      parameters:
+      - description: ID of the movie to remove from cart
+        in: query
+        name: movie_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movie removed from cart successfully, returns updated cart
+            details
+          schema:
+            properties:
+              cart_id:
+                type: string
+              current_movies:
+                items:
+                  $ref: '#/definitions/requests.CartMovieItem'
+                type: array
+              message:
+                type: string
+              user_id:
+                type: string
+            type: object
+        "400":
+          description: 'Bad Request: Invalid movie_id parameter'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: 'Unauthorized: unable to get userId from context or invalid
+            token'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: 'Not Found: Cart for user not found or Movie not found in cart'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: 'Internal server error: Database error or failed to save cart'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove movie from cart
+      tags:
+      - cart
+    get:
+      description: Fetches the contents of the authenticated user's shopping cart.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved cart" // Assuming requests.Cart is the
+            full cart structure
+          schema:
+            $ref: '#/definitions/requests.Cart'
+        "401":
+          description: 'Unauthorized: unable to get userId from context or invalid
+            token'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Cart not found for user
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: 'Internal server error: Failed to retrieve cart'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth // Indicates that this endpoint requires a JWT token: []
+      summary: Retrieve user's shopping cart
+      tags:
+      - cart
+    post:
+      consumes:
+      - application/json
+      description: Adds a specified movie item to the authenticated user's shopping
+        cart.
+      parameters:
+      - description: Movie item details to add to cart
+        in: body
+        name: movie_item
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CartMovieItem'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movie added to cart successfully, returns updated cart details
+          schema:
+            properties:
+              cart_id:
+                type: string
+              current_movies:
+                items:
+                  $ref: '#/definitions/requests.CartMovieItem'
+                type: array
+              message:
+                type: string
+              user_id:
+                type: string
+            type: object
+        "400":
+          description: 'Bad Request: Invalid input or missing fields'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: 'Unauthorized: unable to get userId from context or invalid
+            token'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: 'Not Found: Cart for user not found'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "409":
+          description: 'Conflict: Movie already in cart'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: 'Internal server error: Database error or failed to save cart'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add movie to cart
+      tags:
+      - cart
+  /listallmovies:
+    get:
+      description: Retrieves a list of movies from an external API, with optional
+        filtering and pagination.
+      parameters:
+      - default: 20
+        description: 'Number of movies to return per page (default: 20)'
+        in: query
+        name: limit
+        type: integer
+      - default: 1
+        description: 'Page number for pagination (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - default: 0
+        description: Minimum IMDb rating for movies (e.g., 6.5)
+        in: query
+        name: minimum_rating
+        type: number
+      - description: Movie quality (e.g., 720p, 1080p, 2160p, 3D)
+        in: query
+        name: quality
+        type: string
+      - description: Movie genre (e.g., Action, Comedy, Horror)
+        in: query
+        name: genre
+        type: string
+      - description: Search term for movie title
+        in: query
+        name: query_term
+        type: string
+      - description: Field to sort by (e.g., title, year, rating, downloads)
+        in: query
+        name: sort_by
+        type: string
+      - default: desc
+        description: Order of sorting (asc or desc)
+        in: query
+        name: order_by
+        type: string
+      - description: Include Rotten Tomatoes ratings (true/false)
+        in: query
+        name: with_rt_ratings
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved list of movies
+          schema:
+            items:
+              $ref: '#/definitions/movieExternalApi.Movie'
+            type: array
+        "400":
+          description: 'Bad Request: Invalid query parameters'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'Unauthorized: Missing or invalid token'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error: Failed to retrieve movies from external
+            API'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "502":
+          description: 'Bad Gateway: External API returned an error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all available movies
+      tags:
+      - movies
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user with email and password, returning a JWT token
+        upon successful login.
+      parameters:
+      - description: User login credentials (email and password)
+        in: body
+        name: credentials
+        required: true
+        schema:
+          properties:
+            email:
+              type: string
+            password:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful, returns JWT token
+          schema:
+            properties:
+              message:
+                type: string
+              token:
+                type: string
+            type: object
+        "400":
+          description: 'Bad Request: Invalid input data'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: 'Unauthorized: Incorrect password'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: 'Not Found: User not found with provided email'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: 'Internal Server Error: Failed to retrieve user or generate
+            token'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      summary: Authenticate user and get JWT token
+      tags:
+      - users
+  /movie:
+    get:
+      description: Retrieves detailed information for a specific movie by its ID.
+        Requires authentication.
+      parameters:
+      - description: ID of the movie to retrieve details for
+        in: query
+        name: movie_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved movie details" // Assuming movieExternalApi.Movie
+            is the struct for a single movie
+          schema:
+            $ref: '#/definitions/movieExternalApi.Movie'
+        "400":
+          description: 'Bad Request: Missing or invalid movie_id parameter'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'Unauthorized: Missing or invalid token'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error: Failed to retrieve movie details from
+            external API'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "502":
+          description: 'Bad Gateway: External API returned an error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get movie details by ID
+      tags:
+      - movies
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account with a username, email, and password.
+        Also creates an associated shopping cart.
+      parameters:
+      - description: User registration details (username, email, password)
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User and cart created successfully
+          schema:
+            properties:
+              cart_id:
+                type: string
+              email:
+                type: string
+              message:
+                type: string
+              user_id:
+                type: string
+              username:
+                type: string
+            type: object
+        "400":
+          description: 'Bad Request: Invalid input data'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "409":
+          description: 'Conflict: Username or email already exists'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: 'Internal Server Error: Failed to create user or cart due to
+            database/server error'
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

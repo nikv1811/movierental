@@ -1,4 +1,3 @@
-// api/client.go
 package movieExternalApi
 
 import (
@@ -30,7 +29,6 @@ func (c *APIClient) Get(path string, queryParams map[string]string, result inter
 		return fmt.Errorf("failed to parse URL: %w", err)
 	}
 
-	// Add query parameters if provided
 	if len(queryParams) > 0 {
 		params := url.Values{}
 		for key, value := range queryParams {
@@ -39,15 +37,14 @@ func (c *APIClient) Get(path string, queryParams map[string]string, result inter
 		fullURL.RawQuery = params.Encode()
 	}
 
-	req, err := http.NewRequest(http.MethodGet, fullURL.String(), nil) // nil for body on GET
+	req, err := http.NewRequest(http.MethodGet, fullURL.String(), nil)
 	if err != nil {
 		return fmt.Errorf("error creating GET request: %w", err)
 	}
 
-	// Set common headers. Authorization header is no longer set.
 	req.Header.Set("X-RapidAPI-Host", "movie-database-api1.p.rapidapi.com")
 	req.Header.Set("X-RapidAPI-Key", "8918ef8442msh0541d1e1ae87ed5p1117b7jsn73b4ffb5dba4")
-	req.Header.Set("Accept", "application/json") // Request JSON response
+	req.Header.Set("Accept", "application/json")
 
 	return c.doRequest(req, result)
 }
@@ -60,11 +57,11 @@ func (c *APIClient) doRequest(req *http.Request, result interface{}) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body) // Read body for error details
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
 		return fmt.Errorf("API returned non-success status: %d %s, Body: %s", resp.StatusCode, resp.Status, string(bodyBytes))
 	}
 
-	if resp.StatusCode == http.StatusNoContent { // Handle 204 No Content
+	if resp.StatusCode == http.StatusNoContent {
 		return nil
 	}
 
@@ -73,7 +70,7 @@ func (c *APIClient) doRequest(req *http.Request, result interface{}) error {
 		return fmt.Errorf("error reading response body: %w", err)
 	}
 
-	if result != nil && len(body) > 0 { // Only unmarshal if a result pointer is provided and body is not empty
+	if result != nil && len(body) > 0 {
 		if err := json.Unmarshal(body, result); err != nil {
 			return fmt.Errorf("error unmarshaling JSON response: %w (body: %s)", err, string(body))
 		}

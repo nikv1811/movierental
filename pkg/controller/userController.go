@@ -15,6 +15,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// CreateUser
+// @Summary Register a new user
+// @Description Creates a new user account with a username, email, and password. Also creates an associated shopping cart.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body requests.CreateUser true "User registration details (username, email, password)"
+// @Success 200 {object} object{message=string,user_id=string,username=string,email=string,cart_id=string} "User and cart created successfully"
+// @Failure 400 {object} object{error=string} "Bad Request: Invalid input data"
+// @Failure 409 {object} object{error=string} "Conflict: Username or email already exists"
+// @Failure 500 {object} object{error=string} "Internal Server Error: Failed to create user or cart due to database/server error"
+// @Router /users [post]
 func CreateUser(c *gin.Context) {
 	var userReq requests.CreateUser
 	if err := c.ShouldBindJSON(&userReq); err != nil {
@@ -90,6 +102,19 @@ func CreateUser(c *gin.Context) {
 	})
 }
 
+// LoginUser
+// @Summary Authenticate user and get JWT token
+// @Description Authenticates a user with email and password, returning a JWT token upon successful login.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param credentials body object{email=string,password=string} true "User login credentials (email and password)"
+// @Success 200 {object} object{message=string,token=string} "Login successful, returns JWT token"
+// @Failure 400 {object} object{error=string} "Bad Request: Invalid input data"
+// @Failure 401 {object} object{error=string} "Unauthorized: Incorrect password"
+// @Failure 404 {object} object{error=string} "Not Found: User not found with provided email"
+// @Failure 500 {object} object{error=string} "Internal Server Error: Failed to retrieve user or generate token"
+// @Router /login [post]
 func LoginUser(c *gin.Context) {
 	var loginReq models.User
 	if err := c.ShouldBindJSON(&loginReq); err != nil {
