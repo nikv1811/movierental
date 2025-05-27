@@ -1,0 +1,17 @@
+{
+  "port": "8080",
+  "environment": "development",
+  "gin_mode": "debug",
+  "database": {
+    "host": "localhost",
+    "port": "5432",
+    "user": "postgres",
+    "password": "mysecretpassword",
+    "dbname": "movie_rental_db",
+    "sslmode": "disable"
+  },
+  "omdb_api": {
+    "base_url": "http://www.omdbapi.com/",
+    "api_key": "YOUR_OMDB_API_KEY"
+  }
+}
