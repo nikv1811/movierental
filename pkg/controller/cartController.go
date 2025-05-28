@@ -135,7 +135,6 @@ func RemoveFromCart(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unable to get userId from context"})
 		return
 	}
-	// userIDStr := userId.(string)
 
 	movieIDStr := c.Query("movie_id")
 	if movieIDStr == "" {

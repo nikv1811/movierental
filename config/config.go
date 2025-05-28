@@ -7,12 +7,11 @@ import (
 )
 
 type DatabaseConfig struct {
-	Host     string `json:"host"`
-	Port     string `json:"port"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	DBName   string `json:"dbname"`
-	SSLMode  string `json:"sslmode"`
+	Host    string `json:"host"`
+	Port    int    `json:"port"`
+	User    string `json:"user"`
+	DBName  string `json:"dbname"`
+	SSLMode string `json:"sslmode"`
 }
 
 type MovieAPIHeaders struct {

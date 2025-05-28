@@ -111,7 +111,7 @@ func ListAllMovies(c *gin.Context) {
 // @Security BearerAuth
 // @Produce json
 // @Param movie_id query int true "ID of the movie to retrieve details for"
-// @Success 200 {object} movieExternalApi.Movie "Successfully retrieved movie details" // Assuming movieExternalApi.Movie is the struct for a single movie
+// @Success 200 {object} movieExternalApi.Movie "Successfully retrieved movie details"
 // @Failure 400 {object} map[string]string "Bad Request: Missing or invalid movie_id parameter"
 // @Failure 401 {object} map[string]string "Unauthorized: Missing or invalid token"
 // @Failure 500 {object} map[string]string "Internal Server Error: Failed to retrieve movie details from external API"
