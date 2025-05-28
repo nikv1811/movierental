@@ -2,13 +2,16 @@ package controller
 
 import (
 	"log"
-	"movierental/config"
-	"movierental/pkg/movie/movieExternalApi"
+	"movierental/pkg/services"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+type MovieController struct {
+	MovieService *services.MovieService
+}
 
 // ListAllMovies
 // @Summary List all available movies
@@ -31,13 +34,12 @@ import (
 // @Failure 500 {object} map[string]string "Internal Server Error: Failed to retrieve movies from external API"
 // @Failure 502 {object} map[string]string "Bad Gateway: External API returned an error"
 // @Router /listallmovies [get]
-func ListAllMovies(c *gin.Context) {
-
-	QueryParams := make(map[string]string)
+func (mc *MovieController) ListAllMovies(c *gin.Context) {
+	queryParams := make(map[string]string)
 
 	limitStr := c.DefaultQuery("limit", "20")
 	if _, err := strconv.Atoi(limitStr); err == nil {
-		QueryParams["limit"] = limitStr
+		queryParams["limit"] = limitStr
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'limit' parameter. Must be an integer."})
 		return
@@ -45,7 +47,7 @@ func ListAllMovies(c *gin.Context) {
 
 	pageStr := c.DefaultQuery("page", "1")
 	if _, err := strconv.Atoi(pageStr); err == nil {
-		QueryParams["page"] = pageStr
+		queryParams["page"] = pageStr
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'page' parameter. Must be an integer."})
 		return
@@ -53,55 +55,51 @@ func ListAllMovies(c *gin.Context) {
 
 	minimumRatingStr := c.DefaultQuery("minimum_rating", "0")
 	if _, err := strconv.ParseFloat(minimumRatingStr, 64); err == nil {
-		QueryParams["minimum_rating"] = minimumRatingStr
+		queryParams["minimum_rating"] = minimumRatingStr
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'minimum_rating' parameter. Must be a number."})
 		return
 	}
 
 	if quality := c.Query("quality"); quality != "" {
-		QueryParams["quality"] = quality
+		queryParams["quality"] = quality
 	}
 
 	if genre := c.Query("genre"); genre != "" {
-		QueryParams["genre"] = genre
+		queryParams["genre"] = genre
 	}
 
 	if queryTerm := c.Query("query_term"); queryTerm != "" {
-		QueryParams["query_term"] = queryTerm
+		queryParams["query_term"] = queryTerm
 	}
 
 	if sortBy := c.Query("sort_by"); sortBy != "" {
-		QueryParams["sort_by"] = sortBy
+		queryParams["sort_by"] = sortBy
 	}
 
 	if orderBy := c.Query("order_by"); orderBy != "" {
-		QueryParams["order_by"] = orderBy
+		queryParams["order_by"] = orderBy
 	}
 
 	if withRTRatings := c.Query("with_rt_ratings"); withRTRatings != "" {
-		QueryParams["with_rt_ratings"] = withRTRatings
+		queryParams["with_rt_ratings"] = withRTRatings
 	}
 
-	var moviesResponse movieExternalApi.ListMoviesResponse
-
-	baseURL := config.AppConfig.MovieAPI.BaseURL
-	apiClient := movieExternalApi.NewAPIClient(baseURL)
-
-	err := apiClient.Get("/list_movies.json", QueryParams, &moviesResponse)
+	movies, err := mc.MovieService.ListAllMovies(queryParams)
 	if err != nil {
-		log.Printf("Error calling external RapidAPI: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve movies from external API"})
+		log.Printf("Error listing all movies: %v", err)
+		if err.Error() == "external API returned non-OK status: ok, Message: No movies were found that matched the criteria." {
+			c.JSON(http.StatusNotFound, gin.H{"error": "No movies found matching the criteria."})
+		} else if err.Error() == "external API returned non-OK status: error, Message: Invalid or missing parameter: limit" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or missing parameter: limit"})
+		} else if err.Error() == "external API returned non-OK status: error, Message: Invalid or missing parameter: page" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or missing parameter: page"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve movies."})
+		}
 		return
 	}
-
-	if moviesResponse.Status != "ok" {
-		log.Printf("External API returned non-OK status: %s, Message: %s", moviesResponse.Status, moviesResponse.StatusMessage)
-		c.JSON(http.StatusBadGateway, gin.H{"error": "External API reported an error: " + moviesResponse.StatusMessage})
-		return
-	}
-
-	c.JSON(http.StatusOK, moviesResponse.Data.Movies)
+	c.JSON(http.StatusOK, movies)
 }
 
 // MovieDetails
@@ -111,39 +109,28 @@ func ListAllMovies(c *gin.Context) {
 // @Security BearerAuth
 // @Produce json
 // @Param movie_id query int true "ID of the movie to retrieve details for"
-// @Success 200 {object} movieExternalApi.Movie "Successfully retrieved movie details" // Assuming movieExternalApi.Movie is the struct for a single movie
+// @Success 200 {object} movieExternalApi.Movie "Successfully retrieved movie details"
 // @Failure 400 {object} map[string]string "Bad Request: Missing or invalid movie_id parameter"
 // @Failure 401 {object} map[string]string "Unauthorized: Missing or invalid token"
 // @Failure 500 {object} map[string]string "Internal Server Error: Failed to retrieve movie details from external API"
 // @Failure 502 {object} map[string]string "Bad Gateway: External API returned an error"
 // @Router /movie [get]
-func MovieDetails(c *gin.Context) {
+func (mc *MovieController) MovieDetails(c *gin.Context) {
 	movieId := c.Query("movie_id")
 	if movieId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing required query parameter: movie_id"})
 		return
 	}
 
-	queryParams := map[string]string{
-		"movie_id": movieId,
-	}
-	var moviesResponse movieExternalApi.MovieResponse
-
-	baseURL := config.AppConfig.MovieAPI.BaseURL
-	apiClient := movieExternalApi.NewAPIClient(baseURL)
-
-	err := apiClient.Get("/movie_details.json", queryParams, &moviesResponse)
+	movie, err := mc.MovieService.GetMovieDetails(movieId)
 	if err != nil {
-		log.Printf("Error calling external RapidAPI: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve movies from external API"})
+		log.Printf("Error getting movie details: %v", err)
+		if err.Error() == "external API returned non-OK status: ok, Message: Movie not found!" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Movie not found!"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve movie details."})
+		}
 		return
 	}
-
-	if moviesResponse.Status != "ok" {
-		log.Printf("External API returned non-OK status: %s, Message: %s", moviesResponse.Status, moviesResponse.StatusMessage)
-		c.JSON(http.StatusBadGateway, gin.H{"error": "External API reported an error: " + moviesResponse.StatusMessage})
-		return
-	}
-
-	c.JSON(http.StatusOK, moviesResponse.Data.Movie)
+	c.JSON(http.StatusOK, movie)
 }
