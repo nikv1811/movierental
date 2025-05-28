@@ -2,6 +2,7 @@ package controller
 
 import (
 	"log"
+	"movierental/config"
 	"movierental/pkg/movie/movieExternalApi"
 	"net/http"
 	"strconv"
@@ -84,7 +85,7 @@ func ListAllMovies(c *gin.Context) {
 
 	var moviesResponse movieExternalApi.ListMoviesResponse
 
-	baseURL := "https://movie-database-api1.p.rapidapi.com"
+	baseURL := config.AppConfig.MovieAPI.BaseURL
 	apiClient := movieExternalApi.NewAPIClient(baseURL)
 
 	err := apiClient.Get("/list_movies.json", QueryParams, &moviesResponse)
@@ -128,7 +129,7 @@ func MovieDetails(c *gin.Context) {
 	}
 	var moviesResponse movieExternalApi.MovieResponse
 
-	baseURL := "https://movie-database-api1.p.rapidapi.com"
+	baseURL := config.AppConfig.MovieAPI.BaseURL
 	apiClient := movieExternalApi.NewAPIClient(baseURL)
 
 	err := apiClient.Get("/movie_details.json", queryParams, &moviesResponse)

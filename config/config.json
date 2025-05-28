@@ -5,13 +5,16 @@
   "database": {
     "host": "localhost",
     "port": "5432",
-    "user": "postgres",
-    "password": "mysecretpassword",
-    "dbname": "movie_rental_db",
+    "user": "nikhil.verma",
+    "password": "your_db_password",
+    "dbname": "movie-rental-db",
     "sslmode": "disable"
   },
-  "omdb_api": {
-    "base_url": "http://www.omdbapi.com/",
-    "api_key": "YOUR_OMDB_API_KEY"
+  "movie_api": {
+    "base_url": "https://movie-database-api1.p.rapidapi.com",
+    "headers": {
+      "X-RapidAPI-Host": "movie-database-api1.p.rapidapi.com",
+      "X-RapidAPI-Key": "8918ef8442msh0541d1e1ae87ed5p1117b7jsn73b4ffb5dba4"
+    }
   }
 }

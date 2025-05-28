@@ -28,7 +28,7 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth // Indicates that this endpoint requires a JWT token": []
+                        "BearerAuth": []
                     }
                 ],
                 "description": "Fetches the contents of the authenticated user's shopping cart.",
@@ -41,7 +41,7 @@ const docTemplate = `{
                 "summary": "Retrieve user's shopping cart",
                 "responses": {
                     "200": {
-                        "description": "Successfully retrieved cart\" // Assuming requests.Cart is the full cart structure",
+                        "description": "Successfully retrieved cart",
                         "schema": {
                             "$ref": "#/definitions/requests.Cart"
                         }
