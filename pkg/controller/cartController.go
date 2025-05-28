@@ -18,9 +18,9 @@ import (
 // @Summary Retrieve user's shopping cart
 // @Description Fetches the contents of the authenticated user's shopping cart.
 // @Tags cart
-// @Security BearerAuth // Indicates that this endpoint requires a JWT token
+// @Security BearerAuth
 // @Produce application/json
-// @Success 200 {object} requests.Cart "Successfully retrieved cart" // Assuming requests.Cart is the full cart structure
+// @Success 200 {object} requests.Cart "Successfully retrieved cart"
 // @Failure 401 {object} object{error=string} "Unauthorized: unable to get userId from context or invalid token"
 // @Failure 404 {object} object{error=string} "Cart not found for user"
 // @Failure 500 {object} object{error=string} "Internal server error: Failed to retrieve cart"

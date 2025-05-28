@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"movierental/config"
 	"net/http"
 	"net/url"
 	"time"
@@ -18,7 +19,7 @@ func NewAPIClient(baseURL string) *APIClient {
 	return &APIClient{
 		BaseURL: baseURL,
 		HTTPClient: &http.Client{
-			Timeout: 10 * time.Second, // Default timeout for requests
+			Timeout: 10 * time.Second,
 		},
 	}
 }
@@ -42,8 +43,8 @@ func (c *APIClient) Get(path string, queryParams map[string]string, result inter
 		return fmt.Errorf("error creating GET request: %w", err)
 	}
 
-	req.Header.Set("X-RapidAPI-Host", "movie-database-api1.p.rapidapi.com")
-	req.Header.Set("X-RapidAPI-Key", "8918ef8442msh0541d1e1ae87ed5p1117b7jsn73b4ffb5dba4")
+	req.Header.Set("X-RapidAPI-Host", config.AppConfig.MovieAPI.Headers.RapidAPIHost)
+	req.Header.Set("X-RapidAPI-Key", config.AppConfig.MovieAPI.Headers.RapidAPIKey)
 	req.Header.Set("Accept", "application/json")
 
 	return c.doRequest(req, result)

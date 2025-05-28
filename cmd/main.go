@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"movierental/config"
 	"movierental/pkg/database"
 	"movierental/pkg/routes"
 
@@ -8,6 +10,13 @@ import (
 )
 
 func init() {
+
+	err := config.LoadConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(config.AppConfig)
 	database.ConnectToDb()
 }
 
@@ -34,5 +43,5 @@ func main() {
 
 	routes.SetupRoutes(router)
 
-	router.Run(":8080")
+	router.Run(":" + config.AppConfig.Port)
 }

@@ -129,8 +129,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Successfully retrieved cart" // Assuming requests.Cart is the
-            full cart structure
+          description: Successfully retrieved cart
           schema:
             $ref: '#/definitions/requests.Cart'
         "401":
@@ -156,7 +155,7 @@ paths:
                 type: string
             type: object
       security:
-      - BearerAuth // Indicates that this endpoint requires a JWT token: []
+      - BearerAuth: []
       summary: Retrieve user's shopping cart
       tags:
       - cart
