@@ -7,7 +7,8 @@
     "port": 5432,
     "user": "nikhil.verma",
     "dbname": "movie-rental-db",
-    "sslmode": "disable"
+    "sslmode": "disable",
+    "password": ""
   },
   "movie_api": {
     "base_url": "https://movie-database-api1.p.rapidapi.com",

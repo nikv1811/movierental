@@ -1,10 +1,10 @@
 package routes
 
 import (
-	// _ "movierental/cmd/docs"
 	_ "movierental/docs"
 	"movierental/pkg/controller"
 	"movierental/pkg/middlewares"
+	"movierental/pkg/services"
 
 	"github.com/gin-gonic/gin"
 
@@ -17,17 +17,25 @@ func SetupRoutes(router *gin.Engine) {
 		c.String(200, "Hello World!")
 	})
 
-	router.POST("/users", controller.CreateUser)
-	router.POST("/login", controller.LoginUser)
+	userService := &services.UserService{}
+	movieService := &services.MovieService{}
+	cartService := &services.CartService{}
+
+	userController := &controller.UserController{UserService: userService}
+	movieController := &controller.MovieController{MovieService: movieService}
+	cartController := &controller.CartController{CartService: cartService}
+
+	router.POST("/users", userController.CreateUser)
+	router.POST("/login", userController.LoginUser)
 
 	authenticatedGroup := router.Group("/")
 	authenticatedGroup.Use(middlewares.Authenticate)
 	{
-		authenticatedGroup.GET("/listallmovies", controller.ListAllMovies)
-		authenticatedGroup.GET("/movie", controller.MovieDetails)
-		authenticatedGroup.GET("/cart", controller.RetriveCart)
-		authenticatedGroup.POST("/cart", controller.AddToCart)
-		authenticatedGroup.DELETE("/cart", controller.RemoveFromCart)
+		authenticatedGroup.GET("/listallmovies", movieController.ListAllMovies)
+		authenticatedGroup.GET("/movie", movieController.MovieDetails)
+		authenticatedGroup.GET("/cart", cartController.RetriveCart)
+		authenticatedGroup.POST("/cart", cartController.AddToCart)
+		authenticatedGroup.DELETE("/cart", cartController.RemoveFromCart)
 	}
 
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

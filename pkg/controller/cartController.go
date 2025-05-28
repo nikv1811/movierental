@@ -3,16 +3,17 @@ package controller
 import (
 	"fmt"
 	"log"
+	"movierental/pkg/models/requests"
+	"movierental/pkg/services"
+	"net/http"
 	"strconv"
 
-	// _ "movierental/cmd/docs"
-	"movierental/pkg/database"
-	"movierental/pkg/models/requests"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
+
+type CartController struct {
+	CartService *services.CartService
+}
 
 // RetriveCart
 // @Summary Retrieve user's shopping cart
@@ -25,24 +26,24 @@ import (
 // @Failure 404 {object} object{error=string} "Cart not found for user"
 // @Failure 500 {object} object{error=string} "Internal server error: Failed to retrieve cart"
 // @Router /cart [get]
-func RetriveCart(c *gin.Context) {
+func (cc *CartController) RetriveCart(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unable to get userId from context"})
 		return
 	}
-	var retrievedCart requests.Cart
-	err := database.DB.Where("user_id = ?", userId).First(&retrievedCart).Error
+
+	retrievedCart, err := cc.CartService.RetrieveCart(userId)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			fmt.Println("Typesafe Cart not found for user_abc_123_typesafe.")
+		log.Printf("Error retrieving cart: %v", err)
+		if err.Error() == "cart not found for user" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Cart not found for user"})
 		} else {
-			log.Fatalf("Failed to retrieve typesafe cart: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve cart"})
 		}
 		return
 	}
-
-	c.JSON(200, retrievedCart)
+	c.JSON(http.StatusOK, retrievedCart)
 }
 
 // AddToCart
@@ -60,7 +61,7 @@ func RetriveCart(c *gin.Context) {
 // @Failure 409 {object} object{error=string} "Conflict: Movie already in cart"
 // @Failure 500 {object} object{error=string} "Internal server error: Database error or failed to save cart"
 // @Router /cart [post]
-func AddToCart(c *gin.Context) {
+func (cc *CartController) AddToCart(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unable to get userId from context"})
@@ -78,42 +79,19 @@ func AddToCart(c *gin.Context) {
 		return
 	}
 
-	var existingCart requests.Cart
-	err := database.DB.Where("user_id = ?", userId).First(&existingCart).Error
+	response, err := cc.CartService.AddToCart(userId, movieItem)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Printf("Cart not found for user ID: %s. Cannot add item to non-existent cart.", userId)
-			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Cart for user ID '%s' not found. Please ensure the user exists and their cart is created.", userId)})
+		log.Printf("Error adding to cart: %v", err)
+		if err.Error() == fmt.Sprintf("cart for user ID '%s' not found. Please ensure the user exists and their cart is created", userId) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		} else if err.Error() == fmt.Sprintf("movie '%s' (ID: %d) is already in your cart", movieItem.Title, movieItem.ID) {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		} else {
-			log.Printf("Database error retrieving cart for user ID %s: %v", userId, err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve cart for adding item."})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 		return
 	}
-
-	for _, item := range existingCart.Movies {
-		if item.ID == movieItem.ID {
-			log.Printf("Movie ID %d is already in cart for user %s", movieItem.ID, userId)
-			c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("Movie '%s' (ID: %d) is already in your cart.", movieItem.Title, movieItem.ID)})
-			return
-		}
-	}
-
-	existingCart.Movies = append(existingCart.Movies, movieItem)
-
-	saveResult := database.DB.Save(&existingCart)
-	if saveResult.Error != nil {
-		log.Printf("Database error saving updated cart for user ID %s: %v", userId, saveResult.Error)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add movie to cart due to a database error."})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message":        fmt.Sprintf("Movie '%s' (ID: %d) added to cart successfully.", movieItem.Title, movieItem.ID),
-		"cart_id":        existingCart.Id,
-		"user_id":        existingCart.UserId,
-		"current_movies": existingCart.Movies,
-	})
+	c.JSON(http.StatusOK, response)
 }
 
 // RemoveFromCart
@@ -129,7 +107,7 @@ func AddToCart(c *gin.Context) {
 // @Failure 404 {object} object{error=string} "Not Found: Cart for user not found or Movie not found in cart"
 // @Failure 500 {object} object{error=string} "Internal server error: Database error or failed to save cart"
 // @Router /cart [delete]
-func RemoveFromCart(c *gin.Context) {
+func (cc *CartController) RemoveFromCart(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unable to get userId from context"})
@@ -148,45 +126,17 @@ func RemoveFromCart(c *gin.Context) {
 		return
 	}
 
-	var existingCart requests.Cart
-	err = database.DB.Where("user_id = ?", userId).First(&existingCart).Error
+	response, err := cc.CartService.RemoveFromCart(userId, movieID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Printf("Cart not found for user ID: %s. Cannot remove item from non-existent cart.", userId)
-			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Cart for user ID '%s' not found.", userId)})
+		log.Printf("Error removing from cart: %v", err)
+		if err.Error() == fmt.Sprintf("cart for user ID '%s' not found", userId) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		} else if err.Error() == fmt.Sprintf("movie with ID %d not found in your cart", movieID) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		} else {
-			log.Printf("Database error retrieving cart for user ID %s: %v", userId, err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve cart for removing item."})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 		return
 	}
-
-	foundIndex := -1
-	for i, item := range existingCart.Movies {
-		if item.ID == movieID {
-			foundIndex = i
-			break
-		}
-	}
-
-	if foundIndex == -1 {
-		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Movie with ID %d not found in your cart.", movieID)})
-		return
-	}
-
-	existingCart.Movies = append(existingCart.Movies[:foundIndex], existingCart.Movies[foundIndex+1:]...)
-
-	saveResult := database.DB.Save(&existingCart)
-	if saveResult.Error != nil {
-		log.Printf("Database error saving updated cart for user ID %s: %v", userId, saveResult.Error)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove movie from cart due to a database error."})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message":        fmt.Sprintf("Movie with ID %d removed from cart successfully.", movieID),
-		"cart_id":        existingCart.Id,
-		"user_id":        existingCart.UserId,
-		"current_movies": existingCart.Movies,
-	})
+	c.JSON(http.StatusOK, response)
 }

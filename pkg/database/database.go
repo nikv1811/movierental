@@ -12,7 +12,7 @@ var DB *gorm.DB
 
 func ConnectToDb() {
 	// dsn := "host=localhost user=nikhil.verma dbname=movie-rental-db port=5432 sslmode=disable"
-	dsn := fmt.Sprintf("host=%s user=%s  dbname=%s port=%d sslmode=%s",
+	dsn := fmt.Sprintf("host=%s user=%s dbname=%s port=%d sslmode=%s",
 		config.AppConfig.Database.Host,
 		config.AppConfig.Database.User,
 		config.AppConfig.Database.DBName,
