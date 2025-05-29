@@ -2,19 +2,25 @@ package services
 
 import (
 	"fmt"
-	"movierental/config"
 	"movierental/pkg/movie/movieExternalApi"
 )
 
-type MovieService struct{}
+type APIClientInterface interface {
+	Get(path string, queryParams map[string]string, result interface{}) error
+}
+
+type MovieService struct {
+	APIClient APIClientInterface
+}
+
+func NewMovieService(client APIClientInterface) *MovieService {
+	return &MovieService{APIClient: client}
+}
 
 func (ms *MovieService) ListAllMovies(queryParams map[string]string) ([]movieExternalApi.Movie, error) {
 	var moviesResponse movieExternalApi.ListMoviesResponse
 
-	baseURL := config.AppConfig.MovieAPI.BaseURL
-	apiClient := movieExternalApi.NewAPIClient(baseURL)
-
-	err := apiClient.Get("/list_movies.json", queryParams, &moviesResponse)
+	err := ms.APIClient.Get("/list_movies.json", queryParams, &moviesResponse)
 	if err != nil {
 		return nil, fmt.Errorf("error calling external RapidAPI: %w", err)
 	}
@@ -32,10 +38,7 @@ func (ms *MovieService) GetMovieDetails(movieId string) (movieExternalApi.Movie,
 	}
 	var moviesResponse movieExternalApi.MovieResponse
 
-	baseURL := config.AppConfig.MovieAPI.BaseURL
-	apiClient := movieExternalApi.NewAPIClient(baseURL)
-
-	err := apiClient.Get("/movie_details.json", queryParams, &moviesResponse)
+	err := ms.APIClient.Get("/movie_details.json", queryParams, &moviesResponse)
 	if err != nil {
 		return movieExternalApi.Movie{}, fmt.Errorf("error calling external RapidAPI: %w", err)
 	}
