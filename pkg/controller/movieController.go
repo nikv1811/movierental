@@ -10,7 +10,7 @@ import (
 )
 
 type MovieController struct {
-	MovieService *services.MovieService
+	MovieService services.MovieServiceInterface
 }
 
 // ListAllMovies
@@ -29,10 +29,10 @@ type MovieController struct {
 // @Param order_by query string false "Order of sorting (asc or desc)" default(desc)
 // @Param with_rt_ratings query string false "Include Rotten Tomatoes ratings (true/false)"
 // @Success 200 {array} movieExternalApi.Movie "Successfully retrieved list of movies"
-// @Failure 400 {object} map[string]string "Bad Request: Invalid query parameters"
-// @Failure 401 {object} map[string]string "Unauthorized: Missing or invalid token"
-// @Failure 500 {object} map[string]string "Internal Server Error: Failed to retrieve movies from external API"
-// @Failure 502 {object} map[string]string "Bad Gateway: External API returned an error"
+// @Failure 400 {object} object{error=string} "Bad Request: Invalid query parameters"
+// @Failure 401 {object} object{error=string} "Unauthorized: Missing or invalid token"
+// @Failure 500 {object} object{error=string} "Internal Server Error: Failed to retrieve movies from external API"
+// @Failure 502 {object} object{error=string} "Bad Gateway: External API returned an error"
 // @Router /listallmovies [get]
 func (mc *MovieController) ListAllMovies(c *gin.Context) {
 	queryParams := make(map[string]string)
@@ -110,10 +110,10 @@ func (mc *MovieController) ListAllMovies(c *gin.Context) {
 // @Produce json
 // @Param movie_id query int true "ID of the movie to retrieve details for"
 // @Success 200 {object} movieExternalApi.Movie "Successfully retrieved movie details"
-// @Failure 400 {object} map[string]string "Bad Request: Missing or invalid movie_id parameter"
-// @Failure 401 {object} map[string]string "Unauthorized: Missing or invalid token"
-// @Failure 500 {object} map[string]string "Internal Server Error: Failed to retrieve movie details from external API"
-// @Failure 502 {object} map[string]string "Bad Gateway: External API returned an error"
+// @Failure 400 {object} object{error=string} "Bad Request: Missing or invalid movie_id parameter"
+// @Failure 401 {object} object{error=string} "Unauthorized: Missing or invalid token"
+// @Failure 500 {object} object{error=string} "Internal Server Error: Failed to retrieve movie details from external API"
+// @Failure 502 {object} object{error=string} "Bad Gateway: External API returned an error"
 // @Router /movie [get]
 func (mc *MovieController) MovieDetails(c *gin.Context) {
 	movieId := c.Query("movie_id")

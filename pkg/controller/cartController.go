@@ -12,7 +12,7 @@ import (
 )
 
 type CartController struct {
-	CartService *services.CartService
+	CartService services.CartServiceInterface
 }
 
 // RetriveCart
