@@ -10,12 +10,16 @@ import (
 	"time"
 )
 
+type APIClientInterface interface {
+	Get(path string, queryParams map[string]string, result interface{}) error
+}
+
 type APIClient struct {
 	BaseURL    string
 	HTTPClient *http.Client
 }
 
-func NewAPIClient(baseURL string) *APIClient {
+func NewAPIClient(baseURL string) APIClientInterface {
 	return &APIClient{
 		BaseURL: baseURL,
 		HTTPClient: &http.Client{

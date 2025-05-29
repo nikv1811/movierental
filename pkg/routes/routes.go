@@ -1,9 +1,12 @@
 package routes
 
 import (
+	// _ "movierental/cmd/docs"
+	"movierental/config" // Import config to access AppConfig.MovieAPI.BaseURL
 	_ "movierental/docs"
 	"movierental/pkg/controller"
 	"movierental/pkg/middlewares"
+	"movierental/pkg/movie/movieExternalApi" // Import the movieExternalApi package
 	"movierental/pkg/services"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +21,11 @@ func SetupRoutes(router *gin.Engine) {
 	})
 
 	userService := &services.UserService{}
-	movieService := &services.MovieService{}
+
+	movieAPIClient := movieExternalApi.NewAPIClient(config.AppConfig.MovieAPI.BaseURL)
+
+	movieService := services.NewMovieService(movieAPIClient)
+
 	cartService := &services.CartService{}
 
 	userController := &controller.UserController{UserService: userService}

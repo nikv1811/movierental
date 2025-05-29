@@ -7,7 +7,12 @@ import (
 
 func TestNewAPIClient(t *testing.T) {
 	baseURL := "http://testapi.com"
-	client := NewAPIClient(baseURL)
+	clientInterface := NewAPIClient(baseURL)
+
+	client, ok := clientInterface.(*APIClient)
+	if !ok {
+		t.Fatalf("Expected client to be of type *APIClient, got %T", clientInterface)
+	}
 
 	if client.BaseURL != baseURL {
 		t.Errorf("Expected BaseURL %q, got %q", baseURL, client.BaseURL)
