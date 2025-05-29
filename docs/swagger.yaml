@@ -287,27 +287,31 @@ paths:
         "400":
           description: 'Bad Request: Invalid query parameters'
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "401":
           description: 'Unauthorized: Missing or invalid token'
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "500":
           description: 'Internal Server Error: Failed to retrieve movies from external
             API'
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "502":
           description: 'Bad Gateway: External API returned an error'
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       security:
       - BearerAuth: []
@@ -390,34 +394,37 @@ paths:
       - application/json
       responses:
         "200":
-          description: Successfully retrieved movie details" // Assuming movieExternalApi.Movie
-            is the struct for a single movie
+          description: Successfully retrieved movie details
           schema:
             $ref: '#/definitions/movieExternalApi.Movie'
         "400":
           description: 'Bad Request: Missing or invalid movie_id parameter'
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "401":
           description: 'Unauthorized: Missing or invalid token'
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "500":
           description: 'Internal Server Error: Failed to retrieve movie details from
             external API'
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "502":
           description: 'Bad Gateway: External API returned an error'
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       security:
       - BearerAuth: []

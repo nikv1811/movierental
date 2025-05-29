@@ -373,8 +373,10 @@ const docTemplate = `{
                         "description": "Bad Request: Invalid query parameters",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -382,8 +384,10 @@ const docTemplate = `{
                         "description": "Unauthorized: Missing or invalid token",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -391,8 +395,10 @@ const docTemplate = `{
                         "description": "Internal Server Error: Failed to retrieve movies from external API",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -400,8 +406,10 @@ const docTemplate = `{
                         "description": "Bad Gateway: External API returned an error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -528,7 +536,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successfully retrieved movie details\" // Assuming movieExternalApi.Movie is the struct for a single movie",
+                        "description": "Successfully retrieved movie details",
                         "schema": {
                             "$ref": "#/definitions/movieExternalApi.Movie"
                         }
@@ -537,8 +545,10 @@ const docTemplate = `{
                         "description": "Bad Request: Missing or invalid movie_id parameter",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -546,8 +556,10 @@ const docTemplate = `{
                         "description": "Unauthorized: Missing or invalid token",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -555,8 +567,10 @@ const docTemplate = `{
                         "description": "Internal Server Error: Failed to retrieve movie details from external API",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -564,8 +578,10 @@ const docTemplate = `{
                         "description": "Bad Gateway: External API returned an error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
