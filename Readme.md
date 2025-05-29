@@ -66,7 +66,15 @@ for any further migrations required run the
 go run migration/migration.go
 ```
 
-### 6. Run the Application
+## 6. API Documentation (Swagger)
+
+to generate the swwagger API-Docs run
+
+```bash
+swag init --generalInfo ./cmd/main.go
+```
+
+### 7. Run the Application
 
 To start the Go application:
 
@@ -80,9 +88,7 @@ Connected to database
 Server is running on port 8080
 The application will be running on http://localhost:8080.
 
-## API Documentation (Swagger)
-
-Once the application is running, you can access the API documentation (generated using Swagger) by navigating to:
+once the application is started you can visit the below link to test the apis and api-docs
 
 `http://localhost:8080/docs/index.html`
 
