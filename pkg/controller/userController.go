@@ -11,7 +11,7 @@ import (
 )
 
 type UserController struct {
-	UserService *services.UserService
+	UserService services.UserServiceInterface
 }
 
 // CreateUser

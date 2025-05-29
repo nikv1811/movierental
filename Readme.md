@@ -87,3 +87,9 @@ Once the application is running, you can access the API documentation (generated
 `http://localhost:8080/docs/index.html`
 
 This page provides an interactive interface to explore and test all available API endpoints.
+
+## Run the tests
+
+```bash
+go test ./...
+```
